@@ -27,6 +27,18 @@ func (m ModuleController) DeployModule(c *gin.Context) {
 		return
 	}
 
+	if !data.Completed {
+		c.JSON(http.StatusAccepted, gin.H{"message": "Received webhook but job is not complete. Ignoring."})
+		log.Debug("Received webhook but job is not complete. Ignoring...")
+		c.Abort()
+		return
+	} else if !data.Succeed {
+		c.JSON(http.StatusAccepted, gin.H{"message": "Received webhook but job failed. Ignoring."})
+		log.Debug("Received webhook but job failed. Ignoring...")
+		c.Abort()
+		return
+	}
+
 	cmd.Args = append(cmd.Args, data.ModuleName)
 
 	cmd.Args = append(cmd.Args, fmt.Sprintf("-c %s", h.GetR10kConfig()))
